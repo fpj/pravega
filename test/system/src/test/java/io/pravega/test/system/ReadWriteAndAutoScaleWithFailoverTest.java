@@ -18,6 +18,7 @@ import io.pravega.client.stream.impl.ControllerImpl;
 import io.pravega.client.stream.impl.ControllerImplConfig;
 import io.pravega.client.stream.impl.StreamSegments;
 import io.pravega.common.Exceptions;
+import io.pravega.common.concurrent.ExecutorServiceHelpers;
 import io.pravega.test.system.framework.Environment;
 import io.pravega.test.system.framework.SystemTestRunner;
 import io.pravega.test.system.framework.services.PravegaControllerService;
@@ -91,9 +92,11 @@ public class ReadWriteAndAutoScaleWithFailoverTest extends AbstractFailoverTests
         log.info("Pravega Segmentstore service instance details: {}", segmentStoreInstance.getServiceDetails());
 
         //executor service
-        executorService = Executors.newScheduledThreadPool(NUM_READERS + TOTAL_NUM_WRITERS);
+        executorService = Executors.newScheduledThreadPool(NUM_READERS + TOTAL_NUM_WRITERS + 1);
+        controllerExecutorService = ExecutorServiceHelpers.newScheduledThreadPool(5,
+                                                                                  "MultiReaderTxnWriterWithFailoverTest-Controller");
         //get Controller Uri
-        controller = new ControllerImpl(controllerURIDirect, ControllerImplConfig.builder().retryAttempts(1).build(), executorService);
+        controller = new ControllerImpl(controllerURIDirect, ControllerImplConfig.builder().retryAttempts(1).build(), controllerExecutorService);
         testState = new TestState();
         testState.writersListComplete.add(0, testState.writersComplete);
         testState.writersListComplete.add(1, testState.newWritersComplete);
@@ -106,6 +109,7 @@ public class ReadWriteAndAutoScaleWithFailoverTest extends AbstractFailoverTests
         controllerInstance.scaleService(1, true);
         segmentStoreInstance.scaleService(1, true);
         executorService.shutdownNow();
+        controllerExecutorService.shutdownNow();
         testState.eventsReadFromPravega.clear();
     }
 
