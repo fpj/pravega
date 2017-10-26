@@ -233,6 +233,7 @@ public class AppendTest {
         MockClientFactory clientFactory = streamManager.getClientFactory();
         streamManager.createScope("Scope");
         streamManager.createStream("Scope", streamName, null);
+        @Cleanup
         EventStreamWriter<String> producer = clientFactory.createEventWriter(streamName, new JavaSerializer<>(), EventWriterConfig.builder().build());
         Future<Void> ack = producer.writeEvent(testString);
         ack.get(5, TimeUnit.SECONDS);
@@ -254,6 +255,7 @@ public class AppendTest {
         MockClientFactory clientFactory = streamManager.getClientFactory();
         streamManager.createScope("Scope");
         streamManager.createStream("Scope", streamName, null);
+        @Cleanup
         EventStreamWriter<String> producer = clientFactory.createEventWriter(streamName, new JavaSerializer<>(), EventWriterConfig.builder().build());
         long blockingTime = timeWrites(testString, 200, producer, true);
         long nonBlockingTime = timeWrites(testString, 1000, producer, false);
