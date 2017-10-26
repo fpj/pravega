@@ -204,12 +204,12 @@ public class AppendTest {
         @Cleanup
         PravegaConnectionListener server = new PravegaConnectionListener(false, port, store);
         server.startListening();
-
+        @Cleanup
         ConnectionFactory clientCF = new ConnectionFactoryImpl(false);
         Controller controller = new MockController(endpoint, port, clientCF);
         controller.createScope(scope);
         controller.createStream(StreamConfiguration.builder().scope(scope).streamName(stream).build());
-
+        @Cleanup
         SegmentOutputStreamFactoryImpl segmentClient = new SegmentOutputStreamFactoryImpl(controller, clientCF);
 
         Segment segment = Futures.getAndHandleExceptions(controller.getCurrentSegments(scope, stream), RuntimeException::new).getSegments().iterator().next();
@@ -232,6 +232,7 @@ public class AppendTest {
         server.startListening();
         @Cleanup
         MockStreamManager streamManager = new MockStreamManager("Scope", endpoint, port);
+        @Cleanup
         MockClientFactory clientFactory = streamManager.getClientFactory();
         streamManager.createScope("Scope");
         streamManager.createStream("Scope", streamName, null);
