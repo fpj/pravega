@@ -65,6 +65,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import lombok.Cleanup;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,6 +75,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+@Slf4j
 public class AppendTest {
     private Level originalLevel;
     private ServiceBuilder serviceBuilder;
@@ -259,8 +261,8 @@ public class AppendTest {
         EventStreamWriter<String> producer = clientFactory.createEventWriter(streamName, new JavaSerializer<>(), EventWriterConfig.builder().build());
         long blockingTime = timeWrites(testString, 200, producer, true);
         long nonBlockingTime = timeWrites(testString, 1000, producer, false);
-        System.out.println("Blocking took: " + blockingTime + "ms.");
-        System.out.println("Non blocking took: " + nonBlockingTime + "ms.");        
+        log.info("Blocking took: {} ms.", blockingTime);
+        log.info("Non blocking took: {} ms.", nonBlockingTime);
         assertTrue(blockingTime < 15000);
         assertTrue(nonBlockingTime < 15000);
     }
@@ -269,6 +271,7 @@ public class AppendTest {
             throws InterruptedException, ExecutionException, TimeoutException {
         Timer timer = new Timer();
         for (int i = 0; i < number; i++) {
+            log.info("Test string {}, iteration {}", testString, i);
             Future<Void> ack = producer.writeEvent(testString);
             if (synchronous) {
                 ack.get(5, TimeUnit.SECONDS);
