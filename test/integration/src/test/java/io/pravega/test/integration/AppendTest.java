@@ -257,14 +257,20 @@ public class AppendTest {
         MockClientFactory clientFactory = streamManager.getClientFactory();
         streamManager.createScope("Scope");
         streamManager.createStream("Scope", streamName, null);
-        @Cleanup
-        EventStreamWriter<String> producer = clientFactory.createEventWriter(streamName, new JavaSerializer<>(), EventWriterConfig.builder().build());
-        long blockingTime = timeWrites(testString, 200, producer, true);
-        long nonBlockingTime = timeWrites(testString, 1000, producer, false);
-        log.info("Blocking took: {} ms.", blockingTime);
-        log.info("Non blocking took: {} ms.", nonBlockingTime);
-        assertTrue(blockingTime < 15000);
-        assertTrue(nonBlockingTime < 15000);
+        try {
+            @Cleanup
+            EventStreamWriter<String> producer = clientFactory.createEventWriter(streamName, new JavaSerializer<>(), EventWriterConfig.builder().build());
+            long blockingTime = timeWrites(testString, 200, producer, true);
+            long nonBlockingTime = timeWrites(testString, 1000, producer, false);
+            log.info("Blocking took: {} ms.", blockingTime);
+            log.info("Non blocking took: {} ms.", nonBlockingTime);
+            assertTrue(blockingTime < 15000);
+            assertTrue(nonBlockingTime < 15000);
+        } catch (Throwable e) {
+            log.error("Have thrown");
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     private long timeWrites(String testString, int number, EventStreamWriter<String> producer, boolean synchronous)
