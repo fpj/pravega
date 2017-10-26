@@ -243,7 +243,8 @@ public class AppendTest {
     
     @Test(timeout = 40000)
     public void miniBenchmark() throws InterruptedException, ExecutionException, TimeoutException {
-        String endpoint = "localhost";
+        log.info("Start minibenchmark test");
+	String endpoint = "localhost";
         String streamName = "abc";
         int port = TestUtils.getAvailableListenPort();
         String testString = "Hello world\n";
@@ -258,9 +259,11 @@ public class AppendTest {
         streamManager.createScope("Scope");
         streamManager.createStream("Scope", streamName, null);
         try {
+	    log.info("Creating stream writer");
             @Cleanup
             EventStreamWriter<String> producer = clientFactory.createEventWriter(streamName, new JavaSerializer<>(), EventWriterConfig.builder().build());
             long blockingTime = timeWrites(testString, 200, producer, true);
+	    log.info("Finished blocking");
             long nonBlockingTime = timeWrites(testString, 1000, producer, false);
             log.info("Blocking took: {} ms.", blockingTime);
             log.info("Non blocking took: {} ms.", nonBlockingTime);
