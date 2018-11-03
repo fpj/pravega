@@ -180,6 +180,7 @@ public abstract class DockerBasedService implements io.pravega.test.system.frame
 
     public void start(final boolean wait, final ServiceSpec serviceSpec) {
         try {
+            log.info("Service spec: {}", serviceSpec.toString());
             ServiceCreateResponse serviceCreateResponse = Exceptions.handleInterrupted(() -> dockerClient.createService(serviceSpec));
             if (wait) {
                 Exceptions.handleInterrupted(() -> waitUntilServiceRunning().get(5, TimeUnit.MINUTES));
