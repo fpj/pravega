@@ -686,6 +686,7 @@ public final class WireCommands {
         final UUID writerId;
         final long eventNumber;
         final long previousEventNumber;
+        final long currentSegmentWriteOffset;
 
         @Override
         public void process(ReplyProcessor cp) {
@@ -699,6 +700,7 @@ public final class WireCommands {
             out.writeLong(eventNumber);
             out.writeLong(previousEventNumber);
             out.writeLong(requestId);
+            out.writeLong(currentSegmentWriteOffset);
         }
 
         public static WireCommand readFrom(ByteBufInputStream in, int length) throws IOException {
@@ -709,8 +711,9 @@ public final class WireCommands {
                 previousEventNumber = in.readLong();
             }
             long requestId = in.available() >= Long.BYTES ? in.readLong() : -1L;
+            long currentSegmentWriteOffset = in.available() >= 0 ? in.readLong() : -1;
 
-            return new DataAppended(requestId, writerId, offset, previousEventNumber);
+            return new DataAppended(requestId, writerId, offset, previousEventNumber, currentSegmentWriteOffset);
         }
         
         @Override
@@ -1244,6 +1247,7 @@ public final class WireCommands {
         final long requestId;
         final String target;
         final String source;
+        final long newTargetWriteOffset;
 
         @Override
         public void process(ReplyProcessor cp) {
@@ -1255,13 +1259,15 @@ public final class WireCommands {
             out.writeLong(requestId);
             out.writeUTF(target);
             out.writeUTF(source);
+            out.writeLong(newTargetWriteOffset);
         }
 
-        public static WireCommand readFrom(DataInput in, int length) throws IOException {
+        public static WireCommand readFrom(ByteBufInputStream in, int length) throws IOException {
             long requestId = in.readLong();
             String target = in.readUTF();
             String source = in.readUTF();
-            return new SegmentsMerged(requestId, target, source);
+            long newTargetWriteOffset = in.available() > 0 ? in.readLong() : -1;
+            return new SegmentsMerged(requestId, target, source, newTargetWriteOffset);
         }
     }
 
