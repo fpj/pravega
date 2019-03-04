@@ -323,9 +323,9 @@ public class PravegaRequestProcessorTest {
         order.verify(connection).send(Mockito.argThat(t -> {
             return t instanceof WireCommands.StreamSegmentInfo && ((WireCommands.StreamSegmentInfo) t).exists();
         }));
-        processor.mergeSegments(new WireCommands.MergeSegments(requestId, streamSegmentName, transactionName, ""));
-        order.verify(connection).send(new WireCommands.SegmentsMerged(requestId, streamSegmentName, transactionName));
-        processor.getStreamSegmentInfo(new WireCommands.GetStreamSegmentInfo(requestId, transactionName, ""));
+        processor.mergeSegments(new WireCommands.MergeSegments(3, streamSegmentName, transactionName, ""));
+        order.verify(connection).send(new WireCommands.SegmentsMerged(3, streamSegmentName, transactionName, -1));
+        processor.getStreamSegmentInfo(new WireCommands.GetStreamSegmentInfo(4, transactionName, ""));
         order.verify(connection)
                 .send(new WireCommands.NoSuchSegment(requestId, StreamSegmentNameUtils.getTransactionNameFromId(streamSegmentName, txnid), "", -1L));
 
@@ -359,9 +359,9 @@ public class PravegaRequestProcessorTest {
         String txnName = StreamSegmentNameUtils.getTransactionNameFromId(streamSegmentName, txnid);
         store.sealStreamSegment(txnName, Duration.ZERO).join();
 
-        processor.mergeSegments(new WireCommands.MergeSegments(requestId, streamSegmentName, transactionName, ""));
-        order.verify(connection).send(new WireCommands.SegmentsMerged(requestId, streamSegmentName, transactionName));
-        processor.getStreamSegmentInfo(new WireCommands.GetStreamSegmentInfo(requestId, transactionName, ""));
+        processor.mergeSegments(new WireCommands.MergeSegments(3, streamSegmentName, transactionName, ""));
+        order.verify(connection).send(new WireCommands.SegmentsMerged(3, streamSegmentName, transactionName, -1));
+        processor.getStreamSegmentInfo(new WireCommands.GetStreamSegmentInfo(4, transactionName, ""));
         order.verify(connection)
                 .send(new WireCommands.NoSuchSegment(requestId, StreamSegmentNameUtils.getTransactionNameFromId(streamSegmentName, txnid), "", -1L));
 
@@ -391,10 +391,17 @@ public class PravegaRequestProcessorTest {
 
         String transactionName = StreamSegmentNameUtils.getTransactionNameFromId(streamSegmentName, txnid);
 
+<<<<<<< HEAD
         processor.createSegment(new WireCommands.CreateSegment(requestId, transactionName, WireCommands.CreateSegment.NO_SCALE, 0, ""));
         order.verify(connection).send(new WireCommands.SegmentCreated(requestId, transactionName));
         processor.mergeSegments(new WireCommands.MergeSegments(requestId, streamSegmentName, transactionName, ""));
         order.verify(connection).send(new WireCommands.SegmentsMerged(requestId, streamSegmentName, transactionName));
+=======
+        processor.createSegment(new WireCommands.CreateSegment(1, transactionName, WireCommands.CreateSegment.NO_SCALE, 0, ""));
+        order.verify(connection).send(new WireCommands.SegmentCreated(1, transactionName));
+        processor.mergeSegments(new WireCommands.MergeSegments(2, streamSegmentName, transactionName, ""));
+        order.verify(connection).send(new WireCommands.SegmentsMerged(2, streamSegmentName, transactionName, -1));
+>>>>>>> Fix some compilation issues.
 
         txnid = UUID.randomUUID();
         transactionName = StreamSegmentNameUtils.getTransactionNameFromId(streamSegmentName, txnid);

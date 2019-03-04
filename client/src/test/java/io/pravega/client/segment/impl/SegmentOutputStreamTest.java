@@ -333,8 +333,7 @@ public class SegmentOutputStreamTest extends ThreadPooledTestSuite {
         output.write(PendingEvent.withoutHeader(null, data, acked));
         verify(connection).send(new Append(SEGMENT, cid, 1, 1, Unpooled.wrappedBuffer(data), null, output.getRequestId()));
         assertEquals(false, acked.isDone());
-        AssertExtensions.assertBlocks(() -> output.close(),
-                                      () -> cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 1, 0)));
+        AssertExtensions.assertBlocks(() -> output.close(), () -> cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 1, 0, -1)));
         assertEquals(false, acked.isCompletedExceptionally());
         assertEquals(true, acked.isDone());
         verify(connection, Mockito.atMost(1)).send(new WireCommands.KeepAlive());
@@ -365,8 +364,7 @@ public class SegmentOutputStreamTest extends ThreadPooledTestSuite {
         output.write(PendingEvent.withoutHeader(null, data, acked1));
         order.verify(connection).send(new Append(SEGMENT, cid, 1, 1, Unpooled.wrappedBuffer(data), null, output.getRequestId()));
         assertEquals(false, acked1.isDone());
-        AssertExtensions.assertBlocks(() -> output.flush(),
-                                      () -> cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 1, 0)));
+        AssertExtensions.assertBlocks(() -> output.flush(), () -> cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 1, 0, -1)));
         assertEquals(false, acked1.isCompletedExceptionally());
         assertEquals(true, acked1.isDone());
         order.verify(connection).send(new WireCommands.KeepAlive());
@@ -375,8 +373,7 @@ public class SegmentOutputStreamTest extends ThreadPooledTestSuite {
         output.write(PendingEvent.withoutHeader(null, data, acked2));
         order.verify(connection).send(new Append(SEGMENT, cid, 2, 1, Unpooled.wrappedBuffer(data), null, output.getRequestId()));
         assertEquals(false, acked2.isDone());
-        AssertExtensions.assertBlocks(() -> output.flush(),
-                                      () -> cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 2, 1)));
+        AssertExtensions.assertBlocks(() -> output.flush(), () -> cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 2, 1, -1)));
         assertEquals(false, acked2.isCompletedExceptionally());
         assertEquals(true, acked2.isDone());
         order.verify(connection).send(new WireCommands.KeepAlive());
@@ -405,8 +402,7 @@ public class SegmentOutputStreamTest extends ThreadPooledTestSuite {
         output.write(PendingEvent.withoutHeader(null, data, acked1));
         order.verify(connection).send(new Append(SEGMENT, cid, 1, 1, Unpooled.wrappedBuffer(data), null, output.getRequestId()));
         assertEquals(false, acked1.isDone());
-        AssertExtensions.assertBlocks(() -> output.flush(),
-                                      () -> cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 1, 0)));
+        AssertExtensions.assertBlocks(() -> output.flush(), () -> cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 1, 0, -1)));
         assertEquals(false, acked1.isCompletedExceptionally());
         assertEquals(true, acked1.isDone());
         order.verify(connection).send(new WireCommands.KeepAlive());
@@ -417,7 +413,7 @@ public class SegmentOutputStreamTest extends ThreadPooledTestSuite {
         output.write(PendingEvent.withoutHeader(null, data, acked2));
         order.verify(connection).send(new Append(SEGMENT, cid, 2, 1, Unpooled.wrappedBuffer(data), null, output.getRequestId()));
         assertEquals(false, acked2.isDone());
-        cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 3, 2L));
+        cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 3, 2L, -1));
 
         // check that client reconnected
         verify(cf, times(2)).establishConnection(any(), any());
@@ -446,8 +442,7 @@ public class SegmentOutputStreamTest extends ThreadPooledTestSuite {
         output.write(PendingEvent.withoutHeader(null, data, acked1));
         order.verify(connection).send(new Append(SEGMENT, cid, 1, 1, Unpooled.wrappedBuffer(data), null, output.getRequestId()));
         assertEquals(false, acked1.isDone());
-        AssertExtensions.assertBlocks(() -> output.flush(),
-                                      () -> cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 1, 0)));
+        AssertExtensions.assertBlocks(() -> output.flush(), () -> cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 1, 0, -1)));
         assertEquals(false, acked1.isCompletedExceptionally());
         assertEquals(true, acked1.isDone());
         order.verify(connection).send(new WireCommands.KeepAlive());
@@ -458,7 +453,7 @@ public class SegmentOutputStreamTest extends ThreadPooledTestSuite {
         output.write(PendingEvent.withoutHeader(null, data, acked2));
         order.verify(connection).send(new Append(SEGMENT, cid, 2, 1, Unpooled.wrappedBuffer(data), null, output.getRequestId()));
         assertEquals(false, acked2.isDone());
-        cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 2, 3));
+        cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 2, 3, -1));
 
         // check that client reconnected
         verify(cf, times(2)).establishConnection(any(), any());
@@ -561,10 +556,12 @@ public class SegmentOutputStreamTest extends ThreadPooledTestSuite {
         //Verify behavior
         AssertExtensions.assertBlocks(() -> {
             output.close();
-        }, () -> {
-            // close is unblocked once the connection is setup and data is appended on Segment store.
-            cf.getProcessor(uri).appendSetup(new AppendSetup(output.getRequestId(), SEGMENT, cid, 0));
-            cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 1, 0));
+        }, () -> {            
+            cf.getProcessor(uri).appendSetup(new AppendSetup(output.getRequestId(), 2, SEGMENT, cid, 0));
+            inOrder.verify(connection).send(new WireCommands.KeepAlive());
+            inOrder.verify(connection).send(new SetupAppend(2, cid, SEGMENT, ""));
+            inOrder.verify(connection).sendAsync(Mockito.eq(Collections.singletonList(append)), Mockito.any());
+            cf.getProcessor(uri).dataAppended(new WireCommands.DataAppended(output.getRequestId(), cid, 1, 0, -1));
         });
         // Verify the order of WireCommands sent.
         inOrder.verify(connection).send(new WireCommands.KeepAlive());
