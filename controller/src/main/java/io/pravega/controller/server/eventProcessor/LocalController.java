@@ -34,7 +34,6 @@ import io.pravega.controller.server.rpc.auth.PravegaInterceptor;
 import io.pravega.controller.stream.api.grpc.v1.Controller.ScaleResponse;
 import io.pravega.controller.stream.api.grpc.v1.Controller.SegmentRange;
 import io.pravega.shared.protocol.netty.PravegaNodeUri;
-
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
@@ -329,7 +328,7 @@ public class LocalController implements Controller {
     }
 
     @Override
-    public CompletableFuture<Void> commitTransaction(Stream stream, UUID txnId) {
+    public CompletableFuture<Void> commitTransaction(Stream stream, final String writerId, final Long timestamp, UUID txnId) {
         return controller
                 .commitTransaction(stream.getScope(), stream.getStreamName(), ModelHelper.decode(txnId))
                 .thenApply(x -> null);
