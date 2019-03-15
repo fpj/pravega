@@ -101,7 +101,7 @@ public class MetadataScalabilityTest extends AbstractScaleTests {
         ExecutorServiceHelpers.shutdown(executorService, scaleExecutorService);
     }
 
-    @Test
+    //@Test
     public void scalability() {
         testState = new TestState(false);
 
