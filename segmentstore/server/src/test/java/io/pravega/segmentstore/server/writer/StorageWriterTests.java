@@ -68,6 +68,8 @@ import java.util.stream.Collectors;
 import lombok.Cleanup;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import lombok.extern.slf4j.Slf4j;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -76,6 +78,7 @@ import org.junit.rules.Timeout;
 /**
  * Unit tests for the StorageWriter class.
  */
+@Slf4j
 public class StorageWriterTests extends ThreadPooledTestSuite {
     private static final int CONTAINER_ID = 1;
     private static final int SEGMENT_COUNT = 10;
@@ -594,6 +597,7 @@ public class StorageWriterTests extends ThreadPooledTestSuite {
      * @param context The TestContext to use.
      */
     private void testWriter(TestContext context) throws Exception {
+        log.info("Test writing");
         context.writer.startAsync();
 
         // Create a bunch of segments and Transactions.
