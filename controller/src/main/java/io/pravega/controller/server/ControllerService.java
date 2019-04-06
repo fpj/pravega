@@ -134,6 +134,7 @@ public class ControllerService {
 
     public CompletableFuture<UpdateStreamStatus> updateStream(String scope, String stream, final StreamConfiguration streamConfig) {
         Preconditions.checkNotNull(streamConfig, "streamConfig");
+        log.info("Updating stream: {}, {}", scope, stream);
         Timer timer = new Timer();
         return streamMetadataTasks.updateStream(scope, stream, streamConfig, null)
                   .thenApplyAsync(status -> {
@@ -173,6 +174,7 @@ public class ControllerService {
     public CompletableFuture<DeleteStreamStatus> deleteStream(final String scope, final String stream) {
         Exceptions.checkNotNullOrEmpty(scope, "scope");
         Exceptions.checkNotNullOrEmpty(stream, "stream");
+        log.info("Deleting stream: {}, {}", scope, stream);
         Timer timer = new Timer();
         return streamMetadataTasks.deleteStream(scope, stream, null)
                 .thenApplyAsync(status -> {
@@ -483,6 +485,7 @@ public class ControllerService {
     private void reportUpdateStreamMetrics(String scope, String streamName, UpdateStreamStatus.Status status, Duration latency) {
         if (status.equals(UpdateStreamStatus.Status.SUCCESS)) {
             streamMetrics.updateStream(scope, streamName, latency);
+            log.info("Reporting update stream: {}, {}, {}", scope, streamName, latency);
         } else if (status.equals(UpdateStreamStatus.Status.FAILURE)) {
             streamMetrics.updateStreamFailed(scope, streamName);
         }
@@ -507,6 +510,7 @@ public class ControllerService {
     private void reportDeleteStreamMetrics(String scope, String streamName, DeleteStreamStatus.Status status, Duration latency) {
         if (status.equals(DeleteStreamStatus.Status.SUCCESS)) {
             streamMetrics.deleteStream(scope, streamName, latency);
+            log.info("Reporting delete stream: {}, {}, {}", scope, streamName, latency);
         } else if (status.equals(DeleteStreamStatus.Status.FAILURE)) {
             streamMetrics.deleteStreamFailed(scope, streamName);
         }
